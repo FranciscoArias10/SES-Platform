@@ -68,7 +68,7 @@ function App() {
   const handleCreateUser = async (e: any) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('ses_token');
+      const token = localStorage.getItem('ses_token') || '';
       const res = await fetch(`${API_URL}/api/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
