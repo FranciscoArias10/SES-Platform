@@ -155,8 +155,8 @@ function App() {
     return (
       <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', background: 'var(--g1)' }}>
         <div className="card" style={{ padding: '32px', width: '350px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-            <img src="/logo.png" alt="SES Logo" style={{ height: '60px', objectFit: 'contain' }} />
+          <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+            <img src="/logo.png" alt="SES Logo" style={{ height: '110px', objectFit: 'contain' }} />
           </div>
           <h2 style={{ marginBottom: '8px', color: 'var(--navy)', textAlign: 'center' }}>{isRegister ? 'Registro' : 'Iniciar Sesión'}</h2>
           <p style={{ color: 'var(--g4)', fontSize: '12px', marginBottom: '24px', textAlign: 'center' }}>{isRegister ? 'Crea tu cuenta' : 'Ingresa tus credenciales para acceder'}</p>
@@ -264,7 +264,7 @@ function App() {
       {/* SIDEBAR */}
       <div className="sb">
         <div className="sb-logo">
-          <img src="/logo.png" alt="SES Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+          <img src="/logo.png" alt="SES Logo" style={{ height: '60px', objectFit: 'contain', marginLeft: '-10px' }} />
           <div>
             <div className="sb-brand">SES Platform</div>
             <div className="sb-ver">v1.0.0</div>
