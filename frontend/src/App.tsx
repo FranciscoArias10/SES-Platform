@@ -431,29 +431,31 @@ function App() {
                     {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '12px', borderRadius: '4px', fontSize: '12px', marginTop: '8px' }}>{error}</div>}
                  </form>
                </div>
-               <div className="card" style={{ flex: 2, overflow: 'hidden' }}>
-                 <table className="tbl">
-                   <thead>
-                     <tr>
-                       <th>Nombre</th>
-                       <th>Correo</th>
-                       <th>Rol</th>
-                       <th>Estado</th>
-                       <th>Acciones</th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                     {users.map(u => (
-                       <tr key={u.id_usuario}>
-                         <td><div style={{ fontWeight: 500 }}>{u.nombre} {u.apellido}</div></td>
-                         <td style={{ color: 'var(--g5)' }}>{u.correo}</td>
-                         <td><span className="badge">{u.rol}</span></td>
-                         <td><span className="badge" style={{ background: u.activo ? '#d1fae5' : '#fee2e2', color: u.activo ? '#065f46' : '#991b1b' }}>{u.activo ? 'Activo' : 'Inactivo'}</span></td>
-                         <td><button className="btn-s" onClick={() => startEditUser(u)}>Editar</button></td>
+               <div className="card" style={{ padding: '0', flex: 2, overflow: 'hidden' }}>
+                 <div className="tbl">
+                   <table style={{ width: '100%', margin: 0 }}>
+                     <thead>
+                       <tr>
+                         <th>Nombre</th>
+                         <th>Correo</th>
+                         <th>Rol</th>
+                         <th>Estado</th>
+                         <th>Acciones</th>
                        </tr>
-                     ))}
-                   </tbody>
-                 </table>
+                     </thead>
+                     <tbody>
+                       {users.map(u => (
+                         <tr key={u.id_usuario}>
+                           <td><div style={{ fontWeight: 500 }}>{u.nombre} {u.apellido}</div></td>
+                           <td style={{ color: 'var(--g5)' }}>{u.correo}</td>
+                           <td><span className="badge">{u.rol}</span></td>
+                           <td><span className="badge" style={{ background: u.activo ? '#d1fae5' : '#fee2e2', color: u.activo ? '#065f46' : '#991b1b' }}>{u.activo ? 'Activo' : 'Inactivo'}</span></td>
+                           <td><button className="btn-s" onClick={() => startEditUser(u)}>Editar</button></td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 </div>
                </div>
            </div>
           </div>
