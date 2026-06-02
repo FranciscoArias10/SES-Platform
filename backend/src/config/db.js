@@ -1,11 +1,12 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+const isInternal = process.env.DATABASE_URL && process.env.DATABASE_URL.includes('.internal');
+
 const poolConfig = process.env.DATABASE_URL
   ? {
       connectionString: process.env.DATABASE_URL,
-      // Usualmente necesario para conexiones externas en la nube
-      ssl: { rejectUnauthorized: false }
+      ...(isInternal ? {} : { ssl: { rejectUnauthorized: false } })
     }
   : {
       user: process.env.DB_USER || 'postgres',
