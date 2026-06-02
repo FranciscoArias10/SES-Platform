@@ -284,6 +284,21 @@ app.get('/api/dimensions', async (req, res) => {
   }
 });
 
+// Obtener todas las evaluaciones del usuario
+app.get('/api/evaluations/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await pool.query(
+      'SELECT id_evaluacion, nombre_software, descripcion, estado, fecha_evaluacion FROM evaluacion WHERE id_usuario = $1 ORDER BY fecha_evaluacion DESC',
+      [userId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener historial' });
+  }
+});
+
 app.post('/api/evaluations', async (req, res) => {
   const { nombre_software, descripcion, factoresPonderados, subfactoresCalificados, id_usuario } = req.body;
   try {

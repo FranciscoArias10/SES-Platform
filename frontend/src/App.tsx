@@ -24,6 +24,8 @@ function App() {
     subfactoresCalificados: [] as any[]
   });
   const [evalResult, setEvalResult] = useState<any>(null);
+  
+  const [history, setHistory] = useState<any[]>([]);
 
   let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
   if (API_URL && !API_URL.startsWith('http')) {
@@ -52,6 +54,7 @@ function App() {
           localStorage.setItem('ses_token', data.token);
           setUser(data.user);
           setError('');
+          loadHistory(data.user.id);
           if (data.user.rol === 'Admin') loadUsers(data.token);
         }
       } else {
@@ -154,6 +157,25 @@ function App() {
     }
   };
 
+  const loadHistory = async (userId: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/evaluations/${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setHistory(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === 'evaluations' && user) {
+      loadHistory(user.id);
+    }
+  };
+
   const startNewEvaluation = () => {
     setActiveTab('new-eval');
     setEvalStep(1);
@@ -212,14 +234,14 @@ function App() {
 
         <div className="sb-nav">
           <div className="sb-sec">Principal</div>
-          <div className={`sbi ${activeTab === 'dashboard' ? 'act' : ''}`} onClick={() => setActiveTab('dashboard')}>
+          <div className={`sbi ${activeTab === 'dashboard' ? 'act' : ''}`} onClick={() => handleTabChange('dashboard')}>
             <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
             <div className="sbi-text">Inicio</div>
           </div>
-          <div className={`sbi ${activeTab === 'evaluations' ? 'act' : ''}`} onClick={() => setActiveTab('evaluations')}>
+          <div className={`sbi ${activeTab === 'evaluations' ? 'act' : ''}`} onClick={() => handleTabChange('evaluations')}>
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
             <div className="sbi-text">Evaluaciones</div>
-            <div className="sb-badge">3</div>
+            <div className="sb-badge">{history.length}</div>
           </div>
           <div className={`sbi ${activeTab === 'new-eval' ? 'act' : ''}`} onClick={startNewEvaluation}>
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
@@ -262,6 +284,7 @@ function App() {
             <p className="page-sub">El sistema para la adopción de soluciones de software.</p>
             <div className="card" style={{ padding: '24px' }}>
               <p>Las organizaciones públicas y privadas que necesitan adoptar un nuevo software actualmente siguen un proceso informal. <strong>SES</strong> te permite hacer un análisis FODA y una evaluación estructurada basada en factores y subfactores.</p>
+              <button className="btn-p" style={{ marginTop: '16px' }} onClick={() => handleTabChange('evaluations')}>Ver mis evaluaciones</button>
             </div>
           </div>
 
@@ -280,13 +303,23 @@ function App() {
                    </tr>
                  </thead>
                  <tbody>
-                   <tr>
-                     <td>PostgreSQL</td>
-                     <td>Base de Datos</td>
-                     <td><span className="bdg bgb">En curso</span></td>
-                     <td>24 May 2026</td>
-                     <td><button className="btn-s">Continuar</button></td>
-                   </tr>
+                   {history.length === 0 ? (
+                     <tr>
+                       <td colSpan={5} style={{ textAlign: 'center', color: 'var(--g4)' }}>No tienes evaluaciones guardadas.</td>
+                     </tr>
+                   ) : history.map(ev => (
+                     <tr key={ev.id_evaluacion}>
+                       <td style={{ fontWeight: 500 }}>{ev.nombre_software}</td>
+                       <td>{ev.descripcion || 'Software General'}</td>
+                       <td>
+                         <span className={`bdg ${ev.estado === 'En Curso' ? 'bgb' : 'bgr'}`}>
+                           {ev.estado}
+                         </span>
+                       </td>
+                       <td>{new Date(ev.fecha_evaluacion).toLocaleDateString()}</td>
+                       <td><button className="btn-s">Ver Reporte</button></td>
+                     </tr>
+                   ))}
                  </tbody>
                </table>
              </div>
