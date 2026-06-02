@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './index.css';
 
 function App() {
@@ -31,6 +31,8 @@ function App() {
   if (API_URL && !API_URL.startsWith('http')) {
     API_URL = `https://${API_URL}`;
   }
+
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
   const handleAuth = async (e: any) => {
     e.preventDefault();
@@ -107,6 +109,10 @@ function App() {
     setUser(null);
   };
 
+  if (isLoadingAuth) {
+    return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', background: 'var(--g1)', color: 'var(--navy)' }}>Cargando sesión...</div>;
+  }
+
   if (!user) {
     return (
       <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', background: 'var(--g1)' }}>
@@ -168,6 +174,32 @@ function App() {
       console.error(e);
     }
   };
+
+  useEffect(() => {
+    const restoreSession = async () => {
+      const token = localStorage.getItem('ses_token');
+      if (token) {
+        try {
+          const res = await fetch(`${API_URL}/api/auth/me`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setUser(data.user);
+            loadHistory(data.user.id);
+            if (data.user.rol === 'Admin') loadUsers(token);
+          } else {
+            localStorage.removeItem('ses_token');
+          }
+        } catch (e) {
+          console.error('Error restaurando sesión:', e);
+        }
+      }
+      setIsLoadingAuth(false);
+    };
+    restoreSession();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);

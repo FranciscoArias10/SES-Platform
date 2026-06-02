@@ -116,6 +116,33 @@ const verifyAdmin = (req, res, next) => {
   });
 };
 
+// Middleware genérico para verificar cualquier usuario logueado
+const verifyToken = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No token' });
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(401).json({ error: 'Token inválido' });
+    req.user = decoded;
+    next();
+  });
+};
+
+// Restaurar sesión al recargar la página
+app.get('/api/auth/me', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id_usuario, nombre, correo, rol FROM usuario WHERE id_usuario = $1 AND activo = true', [req.user.id]);
+    if (result.rows.length === 0) return res.status(401).json({ error: 'Usuario no encontrado o inactivo' });
+    const user = result.rows[0];
+    res.json({
+      token: req.headers['authorization'].split(' ')[1],
+      user: { id: user.id_usuario, nombre: user.nombre, correo: user.correo, rol: user.rol }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // RF-12: Gestión de usuarios - Listar
 app.get('/api/users', verifyAdmin, async (req, res) => {
   try {
