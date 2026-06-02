@@ -1,0 +1,168 @@
+<USER_REQUEST>
+Convertidor de PDF a Markdown
+Vista de depuración
+Vista de resultados
+FACULTAD DE CIENCIAS E INGENIERÍA
+CARRERA DE INGENIERÍA DE SOFTWARE
+TEMA:
+SPRINT 0
+AUTORES:
+Steven Ramón García Sánchez
+Steven Francisco Arías Pérez
+ÁNGEL JOAN PUNINA ARELLANO
+Hernán Alfredo Sarango Noboa
+GABRIEL ANDRÉS ASUNCIÓN PÉREZ
+ASIGNATURA:
+PROCESOS Y CALIDAD DE SOFTWARE
+DOCENTE:
+Máster en Ciencias, Víctor Hugo Rea Sánchez
+FECHA DE ENTREGA:
+24 DE MAYO DEL 2026
+ÍNDICE
+I. METODOLOGÍA ÁGIL SELECCIONADA
+1.1. ¿Por qué SCRUM?
+II. PLANIFICACIÓN INICIAL
+2.1. MODELADO DEL NEGOCIO
+1.1.1. ¿Cómo trabaja actualmente el negocio?
+1.1.2. ¿Quiénes participan?
+1.1.3. ¿Qué problemas existen?
+1.1.4. ¿Qué procesos se automatizarán? Propuesta y mejoras
+III. INGENIERÍA DE REQUISITOS CARTERA DE PRODUCTO
+3.1. Requisitos Funcionales — Historias de Usuario
+3.1. Requisitos No Funcionales
+IV. ANÁLISIS Y DISEÑO
+4.1. Diseño de Base de Datos Lógicos
+4.2. Diseño de Base de Datos Físicos
+V. PROTOTIPOS
+VI. MAQUETAS SES
+VII. ESCAMAS ALÁSTICAS
+VIII. ANEXOS
+IX. BIBLIOGRAFÍA
+I. METODOLOGÍA ÁGIL SELECCIONADA
+Para la gestión del proyecto de desarrollo del Sistema de Evaluación de Software (SES), se
+Ha seleccionado la metodología ágil SCRUM. Esta elección responde a la naturaleza iterativa e
+incremental que demanda el proyecto, el cual requiere ciclos cortos de entrega con
+retroalimentación continua del cliente
+1.1. ¿Por qué SCRUM?
+Flexibilidad ante cambios en el sistema de evaluación puede requerir ajustes en sus factores y
+subfactores conforme avanza el desarrollo. SCRUM permite incorporar estos cambios sin afectar
+el plan general.
+Entrega incremental de valor cada sprint produce funcionalidades ejecutables: primero el
+motor de evaluación, luego las interfaces, posteriormente los reportes FODA.
+Transparencia y control las ceremonias SCRUM como los Daily Scrum garantizan
+total visibilidad del avance y permiten detectar impedimentos de forma temprana.
+Colaborac
+<truncated 45216 bytes>
+in-bottom: 16px;
+    }
+
+    .rpli {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .rplb {
+      width: 32px;
+      height: 32px;
+      background: var(--navy);
+      border-radius: var(--rm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .rplt {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--navy);
+    }
+
+    .rpls {
+      font-size: 11px;
+      color: var(--g4);
+    }
+
+    .rpmt {
+      text-align: right;
+      font-size: 11px;
+      color: var(--g4);
+      line-height: 1.8;
+    }
+
+    .rptb {
+      margin-bottom: 18px;
+      padding: 13px;
+      background: var(--g0);
+      border-radius: var(--rm);
+      border-left: 3px solid var(--navy);
+    }
+
+    .rpsn {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--navy);
+    }
+
+    .rpsm {
+      font-size: 11px;
+      color: var(--g4);
+      margin-top: 3px;
+    }
+
+    .rpsh {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--g4);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--g3);
+    }
+
+    .rprb {
+      padding: 13px;
+      border-radius: var(--rm);
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .rprb.B {
+      background: var(--alt);
+    }
+
+    .rprl {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--adk);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 3px;
+    }
+
+    .rprv {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--adk);
+    }
+
+    .rpj {
+      font-size: 12px;
+      color: var(--g5);
+      line-height: 1.6;
+      margin-top: 7px;
+    }
+
+    .rpfm {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .rpfq {
+      padding: 7px 9px;
+      border-radius:
+<truncated 123764 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

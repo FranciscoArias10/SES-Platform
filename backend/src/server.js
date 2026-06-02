@@ -53,10 +53,15 @@ app.post('/api/auth/register', async (req, res) => {
     const saltRounds = 12;
     const contrasena_hash = await bcrypt.hash(contrasena, saltRounds);
 
+    let rol = 'Consultor';
+    if (correo.endsWith('@unemi.edu.ec')) {
+      rol = 'Evaluador';
+    }
+
     const result = await pool.query(
       `INSERT INTO usuario (nombre, apellido, correo, contrasena_hash, rol) 
-       VALUES ($1, $2, $3, $4, 'Evaluador') RETURNING id_usuario, nombre, correo, rol`,
-      [nombre, apellido, correo, contrasena_hash]
+       VALUES ($1, $2, $3, $4, $5) RETURNING id_usuario, nombre, correo, rol`,
+      [nombre, apellido, correo, contrasena_hash, rol]
     );
 
     // Enviaríamos correo de confirmación aquí
@@ -166,6 +171,30 @@ app.post('/api/users', verifyAdmin, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     if (err.code === '23505') return res.status(400).json({ error: 'El correo ya está registrado' });
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// RF-12: Gestión de usuarios - Editar usuario existente (rol, correo, contraseña)
+app.put('/api/users/:id', verifyAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { nombre, apellido, correo, contrasena, rol } = req.body;
+  try {
+    if (contrasena) {
+      const contrasena_hash = await bcrypt.hash(contrasena, 12);
+      await pool.query(
+        `UPDATE usuario SET nombre = $1, apellido = $2, correo = $3, contrasena_hash = $4, rol = $5 WHERE id_usuario = $6`,
+        [nombre, apellido, correo, contrasena_hash, rol, id]
+      );
+    } else {
+      await pool.query(
+        `UPDATE usuario SET nombre = $1, apellido = $2, correo = $3, rol = $4 WHERE id_usuario = $5`,
+        [nombre, apellido, correo, rol, id]
+      );
+    }
+    res.json({ message: 'Usuario actualizado correctamente' });
+  } catch (err) {
+    if (err.code === '23505') return res.status(400).json({ error: 'El correo ya está registrado por otro usuario' });
     res.status(500).json({ error: 'Server error' });
   }
 });

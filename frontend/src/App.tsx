@@ -9,6 +9,7 @@ function App() {
   const [error, setError] = useState('');
   const [users, setUsers] = useState<any[]>([]);
   const [newRole, setNewRole] = useState('Evaluador');
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
 
   const [isRegister, setIsRegister] = useState(false);
   const [nombre, setNombre] = useState('');
@@ -83,25 +84,48 @@ function App() {
     }
   };
 
-  const handleCreateUser = async (e: any) => {
+  const handleSubmitUser = async (e: any) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('ses_token') || '';
-      const res = await fetch(`${API_URL}/api/users`, {
-        method: 'POST',
+      const url = editingUserId ? `${API_URL}/api/users/${editingUserId}` : `${API_URL}/api/users`;
+      const method = editingUserId ? 'PUT' : 'POST';
+      const body = editingUserId && !contrasena 
+        ? { nombre, apellido, correo, rol: newRole } 
+        : { nombre, apellido, correo, contrasena, rol: newRole };
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ nombre, apellido, correo, contrasena, rol: newRole })
+        body: JSON.stringify(body)
       });
       if (res.ok) {
         loadUsers(token);
-        setNombre(''); setApellido(''); setCorreo(''); setContrasena(''); setMsg('Usuario creado');
+        cancelEditUser();
+        setMsg(editingUserId ? 'Usuario actualizado' : 'Usuario creado');
       } else {
         const data = await res.json();
         setError(data.error);
       }
     } catch (e) {
-      setError('Error al crear usuario');
+      setError(editingUserId ? 'Error al actualizar usuario' : 'Error al crear usuario');
     }
+  };
+
+  const startEditUser = (u: any) => {
+    setEditingUserId(u.id_usuario);
+    setNombre(u.nombre);
+    setApellido(u.apellido);
+    setCorreo(u.correo);
+    setNewRole(u.rol);
+    setContrasena(''); // blank to not change unless typed
+    setError(''); setMsg('');
+  };
+
+  const cancelEditUser = () => {
+    setEditingUserId(null);
+    setNombre(''); setApellido(''); setCorreo(''); setContrasena(''); setNewRole('Evaluador');
+    setError(''); setMsg('');
   };
 
   const logout = () => {
@@ -282,10 +306,12 @@ function App() {
             <div className="sbi-text">Evaluaciones</div>
             <div className="sb-badge">{history.length}</div>
           </div>
-          <div className={`sbi ${activeTab === 'new-eval' ? 'act' : ''}`} onClick={startNewEvaluation}>
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-            <div className="sbi-text">Nueva Evaluación</div>
-          </div>
+          {user.rol !== 'Consultor' && (
+            <div className={`sbi ${activeTab === 'new-eval' ? 'act' : ''}`} onClick={startNewEvaluation}>
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+              <div className="sbi-text">Nueva Evaluación</div>
+            </div>
+          )}
           {user.rol === 'Admin' && (
             <div className={`sbi ${activeTab === 'users' ? 'act' : ''}`} onClick={() => handleTabChange('users')}>
               <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -312,7 +338,9 @@ function App() {
           </div>
           <div className="tb-r">
             <button className="btn-s">Documentación</button>
-            <button className="btn-p" onClick={startNewEvaluation}>+ Nueva Evaluación</button>
+            {user.rol !== 'Consultor' && (
+              <button className="btn-p" onClick={startNewEvaluation}>+ Nueva Evaluación</button>
+            )}
           </div>
         </div>
 
@@ -369,8 +397,8 @@ function App() {
              <p className="page-sub">Crea y administra los accesos al sistema SES.</p>
              <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
                <div className="card" style={{ padding: '24px', flex: 1 }}>
-                 <h3 style={{ marginBottom: '16px' }}>Crear Nuevo Usuario</h3>
-                 <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                 <h3 style={{ marginBottom: '16px' }}>{editingUserId ? 'Editar Usuario' : 'Crear Nuevo Usuario'}</h3>
+                 <form onSubmit={handleSubmitUser} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div>
                       <label style={{ fontSize: '11px', fontWeight: 500, color: 'var(--g5)' }}>Nombre</label>
                       <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} required style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--g3)', marginTop: '4px' }} />
@@ -384,50 +412,54 @@ function App() {
                       <input type="email" value={correo} onChange={(e) => setCorreo(e.target.value)} required style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--g3)', marginTop: '4px' }} />
                     </div>
                     <div>
-                      <label style={{ fontSize: '11px', fontWeight: 500, color: 'var(--g5)' }}>Contraseña Temporal</label>
-                      <input type="password" value={contrasena} onChange={(e) => setContrasena(e.target.value)} required style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--g3)', marginTop: '4px' }} />
+                      <label style={{ fontSize: '11px', fontWeight: 500, color: 'var(--g5)' }}>{editingUserId ? 'Nueva Contraseña (dejar en blanco para no cambiar)' : 'Contraseña Temporal'}</label>
+                      <input type="password" value={contrasena} onChange={(e) => setContrasena(e.target.value)} required={!editingUserId} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--g3)', marginTop: '4px' }} />
                     </div>
                     <div>
                       <label style={{ fontSize: '11px', fontWeight: 500, color: 'var(--g5)' }}>Rol del Sistema</label>
                       <select value={newRole} onChange={(e) => setNewRole(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--g3)', marginTop: '4px' }}>
                         <option value="Evaluador">Evaluador</option>
+                        <option value="Admin">Admin</option>
                         <option value="Consultor">Consultor</option>
-                        <option value="Admin">Administrador</option>
                       </select>
                     </div>
-                    {error && <div style={{ color: 'var(--red)', fontSize: '12px' }}>{error}</div>}
-                    {msg && <div style={{ color: 'var(--grn)', fontSize: '12px' }}>{msg}</div>}
-                    <button className="btn-p" style={{ justifyContent: 'center', marginTop: '8px' }} type="submit">Crear Cuenta</button>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                      <button type="submit" className="btn-p" style={{ flex: 1 }}>{editingUserId ? 'Guardar Cambios' : 'Crear Usuario'}</button>
+                      {editingUserId && <button type="button" className="btn-s" onClick={cancelEditUser} style={{ flex: 1 }}>Cancelar</button>}
+                    </div>
+                    {msg && <div style={{ background: '#d1fae5', color: '#065f46', padding: '12px', borderRadius: '4px', fontSize: '12px', marginTop: '8px' }}>{msg}</div>}
+                    {error && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '12px', borderRadius: '4px', fontSize: '12px', marginTop: '8px' }}>{error}</div>}
                  </form>
                </div>
-               <div className="card" style={{ padding: '0', flex: 2, overflow: 'hidden' }}>
-                 <div className="tbl">
-                   <table style={{ margin: 0 }}>
-                     <thead>
-                       <tr>
-                         <th>Usuario</th>
-                         <th>Correo</th>
-                         <th>Rol</th>
-                         <th>Estado</th>
+               <div className="card" style={{ flex: 2, overflow: 'hidden' }}>
+                 <table className="tbl">
+                   <thead>
+                     <tr>
+                       <th>Nombre</th>
+                       <th>Correo</th>
+                       <th>Rol</th>
+                       <th>Estado</th>
+                       <th>Acciones</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {users.map(u => (
+                       <tr key={u.id_usuario}>
+                         <td><div style={{ fontWeight: 500 }}>{u.nombre} {u.apellido}</div></td>
+                         <td style={{ color: 'var(--g5)' }}>{u.correo}</td>
+                         <td><span className="badge">{u.rol}</span></td>
+                         <td><span className="badge" style={{ background: u.activo ? '#d1fae5' : '#fee2e2', color: u.activo ? '#065f46' : '#991b1b' }}>{u.activo ? 'Activo' : 'Inactivo'}</span></td>
+                         <td><button className="btn-s" onClick={() => startEditUser(u)}>Editar</button></td>
                        </tr>
-                     </thead>
-                     <tbody>
-                       {users.map(u => (
-                         <tr key={u.id_usuario}>
-                           <td>{u.nombre} {u.apellido}</td>
-                           <td>{u.correo}</td>
-                           <td><span className={`bdg ${u.rol === 'Admin' ? 'bgp' : u.rol === 'Consultor' ? 'bgb' : 'bgg'}`}>{u.rol}</span></td>
-                           <td>{u.activo ? 'Activo' : 'Inactivo'}</td>
-                         </tr>
-                       ))}
-                     </tbody>
-                   </table>
-                 </div>
+                     ))}
+                   </tbody>
+                 </table>
                </div>
-             </div>
+           </div>
           </div>
 
-          <div className={`sc ${activeTab === 'new-eval' ? 'on' : ''}`}>
+          {user.rol !== 'Consultor' && (
+            <div className={`sc ${activeTab === 'new-eval' ? 'on' : ''}`}>
              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                <div>
                  <h1 className="page-title">Nueva Evaluación</h1>
@@ -558,6 +590,7 @@ function App() {
                </div>
              )}
           </div>
+          )}
         </div>
       </div>
     </div>
