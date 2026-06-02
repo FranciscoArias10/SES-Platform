@@ -396,7 +396,8 @@ input {
 }
 
 .tbl tr:hover td {
-  background: var(--g
+  background: var(--g0);
+}
 .rpli { display: flex; align-items: center; gap: 9px; }
 .rplb { width: 32px; height: 32px; background: var(--navy); border-radius: var(--rm); display: flex; align-items: center; justify-content: center; }
 .rplt { font-size: 14px; font-weight: 500; color: var(--navy); }
