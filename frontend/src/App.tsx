@@ -3,11 +3,11 @@ import './index.css';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<any>(null);
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [newRole, setNewRole] = useState('Evaluador');
 
   const [isRegister, setIsRegister] = useState(false);
@@ -17,7 +17,7 @@ function App() {
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-  const handleAuth = async (e) => {
+  const handleAuth = async (e: any) => {
     e.preventDefault();
     const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
     const body = isRegister ? { nombre, apellido, correo, contrasena } : { correo, contrasena };
@@ -51,7 +51,7 @@ function App() {
     }
   };
 
-  const loadUsers = async (token) => {
+  const loadUsers = async (token: string) => {
     try {
       const res = await fetch(`${API_URL}/api/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -65,7 +65,7 @@ function App() {
     }
   };
 
-  const handleCreateUser = async (e) => {
+  const handleCreateUser = async (e: any) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('ses_token');
