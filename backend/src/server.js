@@ -256,7 +256,70 @@ app.post('/api/evaluations/:id/submit', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+// --- NUEVA EVALUACIÓN ENDPOINTS ---
 
+app.get('/api/dimensions', async (req, res) => {
+  try {
+    // Obtener dimensiones, factores y subfactores jerárquicamente
+    const dimResult = await pool.query('SELECT * FROM dimension');
+    const facResult = await pool.query('SELECT * FROM factor');
+    const subResult = await pool.query('SELECT * FROM subfactor WHERE activo = true');
+    
+    const dimensions = dimResult.rows.map(d => {
+      return {
+        ...d,
+        factores: facResult.rows
+          .filter(f => f.id_dimension === d.id_dimension)
+          .map(f => ({
+            ...f,
+            subfactores: subResult.rows.filter(s => s.id_factor === f.id_factor)
+          }))
+      };
+    });
+    
+    res.json(dimensions);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: String(err.stack || err) });
+  }
+});
+
+app.post('/api/evaluations', async (req, res) => {
+  const { nombre_software, descripcion, factoresPonderados, subfactoresCalificados, id_usuario } = req.body;
+  try {
+    await pool.query('BEGIN');
+    
+    // 1. Crear Evaluación
+    const evalRes = await pool.query(
+      'INSERT INTO evaluacion (id_usuario, nombre_software, descripcion, estado) VALUES ($1, $2, $3, $4) RETURNING id_evaluacion',
+      [id_usuario, nombre_software, descripcion, 'Finalizado']
+    );
+    const id_evaluacion = evalRes.rows[0].id_evaluacion;
+    
+    // 2. Guardar Ponderaciones de Factores (IR)
+    for (const factor of factoresPonderados) {
+      await pool.query(
+        'INSERT INTO eval_factor (id_evaluacion, id_factor, peso_asignado) VALUES ($1, $2, $3)',
+        [id_evaluacion, factor.id_factor, factor.peso]
+      );
+    }
+    
+    // 3. Guardar Calificaciones de Subfactores
+    for (const sub of subfactoresCalificados) {
+      await pool.query(
+        'INSERT INTO eval_subfactor (id_evaluacion, id_subfactor, calificacion) VALUES ($1, $2, $3)',
+        [id_evaluacion, sub.id_subfactor, sub.calificacion]
+      );
+    }
+    
+    await pool.query('COMMIT');
+    res.json({ success: true, id_evaluacion });
+  } catch (err) {
+    await pool.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: String(err.stack || err) });
+  }
+});
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'SES API is running' });
 });
