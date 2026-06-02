@@ -101,7 +101,7 @@ app.post('/api/auth/login', async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Server error: ' + err.message });
+    res.status(500).json({ error: String(err.stack || err) });
   }
 });
 
@@ -259,6 +259,14 @@ app.post('/api/evaluations/:id/submit', async (req, res) => {
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'SES API is running' });
+});
+
+app.get('/api/debug-env', (req, res) => {
+  res.json({ 
+    db_url_exists: !!process.env.DATABASE_URL,
+    db_url_length: process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0,
+    db_url_start: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 15) : null
+  });
 });
 
 const PORT = process.env.PORT || 3000;
