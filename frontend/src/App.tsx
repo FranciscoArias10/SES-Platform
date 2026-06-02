@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import './index.css';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
   const [evalResult, setEvalResult] = useState<any>(null);
   
   const [history, setHistory] = useState<any[]>([]);
+  const [reportData, setReportData] = useState<any>(null);
 
   let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
   if (API_URL && !API_URL.startsWith('http')) {
@@ -239,6 +241,24 @@ function App() {
     }
   };
 
+  const viewReport = async (id: number) => {
+    try {
+      const token = localStorage.getItem('ses_token') || '';
+      const res = await fetch(`${API_URL}/api/evaluations/detail/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setReportData(data);
+        setActiveTab('report');
+      } else {
+        alert('Error al cargar el reporte');
+      }
+    } catch (e) {
+      alert('Error de conexión al cargar el reporte');
+    }
+  };
+
   const startNewEvaluation = () => {
     setActiveTab('new-eval');
     setEvalStep(1);
@@ -384,7 +404,7 @@ function App() {
                          </span>
                        </td>
                        <td>{new Date(ev.fecha_evaluacion).toLocaleDateString()}</td>
-                       <td><button className="btn-s">Ver Reporte</button></td>
+                       <td><button className="btn-s" onClick={() => viewReport(ev.id_evaluacion)}>Ver Reporte</button></td>
                      </tr>
                    ))}
                  </tbody>
@@ -593,6 +613,79 @@ function App() {
              )}
           </div>
           )}
+
+          <div className={`sc ${activeTab === 'report' ? 'on' : ''}`}>
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+               <div>
+                 <h1 className="page-title">Reporte de Evaluación</h1>
+                 <p className="page-sub">Resultados detallados del análisis del software.</p>
+               </div>
+               <button className="btn-s" onClick={() => handleTabChange('evaluations')}>Volver a Evaluaciones</button>
+             </div>
+
+             {reportData && (
+               <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+                 <div className="card" style={{ flex: 1, padding: '24px' }}>
+                   <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--g6)', marginBottom: '8px' }}>{reportData.evaluacion.nombre_software}</h2>
+                   <p style={{ color: 'var(--g5)', fontSize: '13px', marginBottom: '16px' }}>{reportData.evaluacion.descripcion || 'Sin descripción'}</p>
+                   
+                   <div style={{ background: 'var(--g0)', padding: '16px', borderRadius: 'var(--rl)', border: '1px solid var(--g3)', textAlign: 'center' }}>
+                     <div style={{ fontSize: '12px', color: 'var(--g4)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Puntaje Total Calculado</div>
+                     <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--blue)', lineHeight: '1' }}>{reportData.totalScore}</div>
+                     <span className={`bdg ${reportData.totalScore > 25 ? 'bgb' : 'bgr'}`} style={{ marginTop: '8px', display: 'inline-block' }}>
+                        {reportData.totalScore > 25 ? 'Recomendado' : 'Requiere Revisión'}
+                     </span>
+                   </div>
+
+                   <div style={{ marginTop: '24px', height: '300px' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={reportData.radarData}>
+                          <PolarGrid stroke="var(--g3)" />
+                          <PolarAngleAxis dataKey="dimension" tick={{ fill: 'var(--g5)', fontSize: 11 }} />
+                          <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                          <Radar name="Software" dataKey="score" stroke="var(--blue)" fill="var(--blue)" fillOpacity={0.4} />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                   </div>
+                 </div>
+
+                 <div className="card" style={{ flex: 1, padding: '24px' }}>
+                   <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--g6)', marginBottom: '16px' }}>Análisis de Factores</h3>
+                   
+                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                     <div>
+                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                         <div className="rplb" style={{ background: 'var(--grn)', width: '24px', height: '24px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                         <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--g6)', margin: 0 }}>Fortalezas Principales</h4>
+                       </div>
+                       {reportData.fortalezas.length > 0 ? (
+                         <ul style={{ listStyleType: 'disc', paddingLeft: '24px', color: 'var(--g5)', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '4px', margin: 0 }}>
+                           {reportData.fortalezas.map((f: string, i: number) => <li key={i}>{f}</li>)}
+                         </ul>
+                       ) : (
+                         <p style={{ color: 'var(--g4)', fontSize: '13px', margin: 0, paddingLeft: '32px' }}>No se detectaron fortalezas sobresalientes.</p>
+                       )}
+                     </div>
+
+                     <div style={{ marginTop: '8px' }}>
+                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                         <div className="rplb" style={{ background: 'var(--red)', width: '24px', height: '24px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>
+                         <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--g6)', margin: 0 }}>Áreas de Mejora (Debilidades)</h4>
+                       </div>
+                       {reportData.debilidades.length > 0 ? (
+                         <ul style={{ listStyleType: 'disc', paddingLeft: '24px', color: 'var(--g5)', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '4px', margin: 0 }}>
+                           {reportData.debilidades.map((d: string, i: number) => <li key={i}>{d}</li>)}
+                         </ul>
+                       ) : (
+                         <p style={{ color: 'var(--g4)', fontSize: '13px', margin: 0, paddingLeft: '32px' }}>No se detectaron debilidades críticas.</p>
+                       )}
+                     </div>
+                   </div>
+
+                 </div>
+               </div>
+             )}
+          </div>
         </div>
       </div>
     </div>

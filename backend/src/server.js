@@ -355,6 +355,55 @@ app.get('/api/evaluations/:userId', async (req, res) => {
   }
 });
 
+// Obtener detalle completo de una evaluación
+app.get('/api/evaluations/detail/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Metadata
+    const evalRes = await pool.query('SELECT * FROM evaluacion WHERE id_evaluacion = $1', [id]);
+    if (evalRes.rows.length === 0) return res.status(404).json({ error: 'Evaluación no encontrada' });
+    const evaluacion = evalRes.rows[0];
+
+    const detailsRes = await pool.query(`
+      SELECT d.nombre as dimension, f.nombre as factor, s.descripcion as subfactor, es.calificacion
+      FROM eval_subfactor es
+      JOIN subfactor s ON es.id_subfactor = s.id_subfactor
+      JOIN factor f ON s.id_factor = f.id_factor
+      JOIN dimension d ON f.id_dimension = d.id_dimension
+      WHERE es.id_evaluacion = $1
+    `, [id]);
+
+    const dimensionData = {};
+    let totalScore = 0;
+    const fortalezas = [];
+    const debilidades = [];
+
+    detailsRes.rows.forEach(row => {
+      totalScore += row.calificacion;
+      if (!dimensionData[row.dimension]) {
+         dimensionData[row.dimension] = { dimension: row.dimension, score: 0, count: 0 };
+      }
+      dimensionData[row.dimension].score += row.calificacion;
+      dimensionData[row.dimension].count += 1;
+
+      if (row.calificacion >= 4) fortalezas.push(row.subfactor);
+      else if (row.calificacion <= 2) debilidades.push(row.subfactor);
+    });
+
+    // We assume max score per subfactor is 5
+    const radarData = Object.keys(dimensionData).length > 0 ? Object.values(dimensionData).map(d => ({
+      dimension: d.dimension,
+      score: Math.round((d.score / (d.count * 5)) * 100) // 100% max
+    })) : [];
+
+    res.json({ evaluacion, totalScore, radarData, fortalezas, debilidades });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener detalle' });
+  }
+});
+
 app.post('/api/evaluations', async (req, res) => {
   const { nombre_software, descripcion, factoresPonderados, subfactoresCalificados, id_usuario } = req.body;
   try {
