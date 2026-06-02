@@ -364,7 +364,7 @@ function App() {
              </div>
           </div>
 
-          <div className={`sc ${activeTab === 'admin' ? 'on' : ''}`}>
+          <div className={`sc ${activeTab === 'users' ? 'on' : ''}`}>
              <h1 className="page-title">Gestión de Usuarios</h1>
              <p className="page-sub">Crea y administra los accesos al sistema SES.</p>
              <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
