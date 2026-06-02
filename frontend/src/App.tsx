@@ -191,7 +191,9 @@ function App() {
             setUser(data.user);
             loadHistory(data.user.id);
             if (data.user.rol === 'Admin') loadUsers(token);
-          } else {
+          } else if (res.status === 401 || res.status === 403) {
+            // Solo borramos el token si expiró o es inválido. 
+            // Si es un error 500 o de conexión, mantenemos la sesión.
             localStorage.removeItem('ses_token');
           }
         } catch (e) {
