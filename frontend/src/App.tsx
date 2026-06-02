@@ -109,6 +109,44 @@ function App() {
     setUser(null);
   };
 
+  const loadHistory = async (userId: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/evaluations/${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setHistory(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    const restoreSession = async () => {
+      const token = localStorage.getItem('ses_token');
+      if (token) {
+        try {
+          const res = await fetch(`${API_URL}/api/auth/me`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setUser(data.user);
+            loadHistory(data.user.id);
+            if (data.user.rol === 'Admin') loadUsers(token);
+          } else if (res.status === 401 || res.status === 403) {
+            localStorage.removeItem('ses_token');
+          }
+        } catch (e) {
+          console.error('Error restaurando sesión:', e);
+        }
+      }
+      setIsLoadingAuth(false);
+    };
+    restoreSession();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (isLoadingAuth) {
     return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', background: 'var(--g1)', color: 'var(--navy)' }}>Cargando sesión...</div>;
   }
@@ -166,45 +204,7 @@ function App() {
     }
   };
 
-  const loadHistory = async (userId: string) => {
-    try {
-      const res = await fetch(`${API_URL}/api/evaluations/${userId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setHistory(data);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
-  useEffect(() => {
-    const restoreSession = async () => {
-      const token = localStorage.getItem('ses_token');
-      if (token) {
-        try {
-          const res = await fetch(`${API_URL}/api/auth/me`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            setUser(data.user);
-            loadHistory(data.user.id);
-            if (data.user.rol === 'Admin') loadUsers(token);
-          } else if (res.status === 401 || res.status === 403) {
-            // Solo borramos el token si expiró o es inválido. 
-            // Si es un error 500 o de conexión, mantenemos la sesión.
-            localStorage.removeItem('ses_token');
-          }
-        } catch (e) {
-          console.error('Error restaurando sesión:', e);
-        }
-      }
-      setIsLoadingAuth(false);
-    };
-    restoreSession();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
