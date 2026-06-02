@@ -6,13 +6,15 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: '*', // Permitir Vercel
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || 'ses_super_secret_key_2026';
-
-app.use(cors());
-app.use(express.json());
 
 // Get all factors and subfactors
 app.get('/api/factors', async (req, res) => {
